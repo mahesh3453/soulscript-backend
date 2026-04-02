@@ -9,6 +9,7 @@ exports.addLike = async (req, res) => {
         
         res.status(201).json(newLike);
     } catch (error) {
+        console.error('Add like error:', error);
         if (error.code === 11000) {
             return res.status(400).json({ error: 'Like already exists' });
         }
@@ -21,6 +22,7 @@ exports.getLikes = async (req, res) => {
         const likes = await Like.find({ userId: req.params.userId }).sort({ createdAt: -1 });
         res.json(likes);
     } catch (error) {
+        console.error('Get likes error:', error);
         res.status(500).json({ error: 'Failed to fetch likes' });
     }
 };
@@ -30,6 +32,7 @@ exports.removeLike = async (req, res) => {
         await Like.findByIdAndDelete(req.params.id);
         res.json({ message: 'Like removed' });
     } catch (error) {
+        console.error('Remove like error:', error);
         res.status(500).json({ error: 'Failed to remove like' });
     }
 };

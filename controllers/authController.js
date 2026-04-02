@@ -18,6 +18,7 @@ exports.register = async (req, res) => {
 
         res.status(201).json({ userId: user._id });
     } catch (error) {
+        console.error('Registration error:', error);
         res.status(500).json({ error: 'Server error during registration' });
     }
 };
@@ -38,6 +39,7 @@ exports.login = async (req, res) => {
 
         res.json({ userId: user._id });
     } catch (error) {
+        console.error('Login error:', error);
         res.status(500).json({ error: 'Server error during login' });
     }
 };

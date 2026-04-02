@@ -9,6 +9,7 @@ exports.addBookmark = async (req, res) => {
         
         res.status(201).json(newBookmark);
     } catch (error) {
+        console.error('Add bookmark error:', error);
         if (error.code === 11000) {
             return res.status(400).json({ error: 'Bookmark already exists' });
         }
@@ -21,6 +22,7 @@ exports.getBookmarks = async (req, res) => {
         const bookmarks = await Bookmark.find({ userId: req.params.userId }).sort({ createdAt: -1 });
         res.json(bookmarks);
     } catch (error) {
+        console.error('Get bookmarks error:', error);
         res.status(500).json({ error: 'Failed to fetch bookmarks' });
     }
 };
@@ -30,6 +32,7 @@ exports.removeBookmark = async (req, res) => {
         await Bookmark.findByIdAndDelete(req.params.id);
         res.json({ message: 'Bookmark removed' });
     } catch (error) {
+        console.error('Remove bookmark error:', error);
         res.status(500).json({ error: 'Failed to remove bookmark' });
     }
 };

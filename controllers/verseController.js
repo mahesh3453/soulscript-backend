@@ -7,6 +7,7 @@ exports.getRandomVerse = (req, res) => {
         const verse = bibleService.getRandomVerse(lang);
         res.json(verse);
     } catch (error) {
+        console.error('getRandomVerse error:', error);
         res.status(500).json({ error: 'Failed to fetch random verse' });
     }
 };
@@ -21,6 +22,7 @@ exports.getVerseByMood = (req, res) => {
         }
         res.json(verse);
     } catch (error) {
+        console.error('getVerseByMood error:', error);
         res.status(500).json({ error: 'Failed to fetch mood-based verse' });
     }
 };
@@ -30,6 +32,7 @@ exports.getBooks = (req, res) => {
         const books = bibleService.getBooks();
         res.json(books);
     } catch (error) {
+        console.error('getBooks error:', error);
         res.status(500).json({ error: 'Failed to fetch books' });
     }
 };
@@ -56,6 +59,7 @@ exports.getChaptersCount = (req, res) => {
         const count = bibleService.getChaptersCount(bookIdx);
         res.json({ count });
     } catch (error) {
+        console.error('getChaptersCount error:', error);
         res.status(500).json({ error: 'Failed to fetch chapters count' });
     }
 };
@@ -86,6 +90,7 @@ exports.getChapter = (req, res) => {
         }
         res.json(result);
     } catch (error) {
+        console.error('getChapter error:', error);
         res.status(500).json({ error: 'Failed to fetch chapter' });
     }
 };
@@ -116,6 +121,7 @@ exports.getSpecificVerse = (req, res) => {
         }
         res.json(result);
     } catch (error) {
+        console.error('getSpecificVerse error:', error);
         res.status(500).json({ error: 'Failed to fetch specific verse' });
     }
 };
