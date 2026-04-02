@@ -5,6 +5,9 @@ exports.getRandomVerse = (req, res) => {
     try {
         const lang = req.query.lang || 'en';
         const verse = bibleService.getRandomVerse(lang);
+        if (!verse) {
+            return res.status(404).json({ error: 'No verses found' });
+        }
         res.json(verse);
     } catch (error) {
         console.error('getRandomVerse error:', error);
@@ -30,6 +33,9 @@ exports.getVerseByMood = (req, res) => {
 exports.getBooks = (req, res) => {
     try {
         const books = bibleService.getBooks();
+        if (!books || books.length === 0) {
+            return res.status(404).json({ error: 'No books found' });
+        }
         res.json(books);
     } catch (error) {
         console.error('getBooks error:', error);

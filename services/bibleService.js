@@ -53,6 +53,7 @@ class BibleService {
     }
 
     getBooks() {
+        if (!bookMapping || bookMapping.length === 0) return [];
         return bookMapping;
     }
 
@@ -110,27 +111,45 @@ class BibleService {
     }
 
     getRandomVerse(lang = 'en') {
-        const randomBookIdx = Math.floor(Math.random() * this.bibleData.length);
-        const book = this.bibleData[randomBookIdx];
-        const randomChapterIdx = Math.floor(Math.random() * book.chapters.length);
-        const chapter = book.chapters[randomChapterIdx];
-        const randomVerseIdx = Math.floor(Math.random() * chapter.length);
-        const verseObj = chapter[randomVerseIdx];
+        try {
+            if (!this.bibleData || this.bibleData.length === 0) return null;
+            
+            const randomBookIdx = Math.floor(Math.random() * this.bibleData.length);
+            const book = this.bibleData[randomBookIdx];
+            if (!book || !book.chapters || book.chapters.length === 0) return null;
 
-        return {
-            book: this.getBookName(randomBookIdx),
-            chapter: randomChapterIdx + 1,
-            verse: randomVerseIdx + 1,
-            text: lang === 'hi' ? verseObj.text_hi : verseObj.text_en
-        };
+            const randomChapterIdx = Math.floor(Math.random() * book.chapters.length);
+            const chapter = book.chapters[randomChapterIdx];
+            if (!chapter || chapter.length === 0) return null;
+
+            const randomVerseIdx = Math.floor(Math.random() * chapter.length);
+            const verseObj = chapter[randomVerseIdx];
+            if (!verseObj) return null;
+
+            return {
+                book: this.getBookName(randomBookIdx),
+                chapter: randomChapterIdx + 1,
+                verse: randomVerseIdx + 1,
+                text: lang === 'hi' ? verseObj.text_hi : verseObj.text_en
+            };
+        } catch (error) {
+            console.error('Error in getRandomVerse:', error);
+            return null;
+        }
     }
 
     getVerseByMood(mood, lang = 'en') {
-        const verses = moodMapping[mood.toLowerCase()];
-        if (!verses || verses.length === 0) return this.getRandomVerse(lang);
+        try {
+            const moodKey = mood ? mood.toLowerCase() : '';
+            const verses = moodMapping[moodKey];
+            if (!verses || verses.length === 0) return this.getRandomVerse(lang);
 
-        const randomSelection = verses[Math.floor(Math.random() * verses.length)];
-        return this.getVerse(randomSelection.bookIdx, randomSelection.chapter, randomSelection.verse, lang);
+            const randomSelection = verses[Math.floor(Math.random() * verses.length)];
+            return this.getVerse(randomSelection.bookIdx, randomSelection.chapter, randomSelection.verse, lang);
+        } catch (error) {
+            console.error('Error in getVerseByMood:', error);
+            return this.getRandomVerse(lang);
+        }
     }
 
     getBookName(index) {
