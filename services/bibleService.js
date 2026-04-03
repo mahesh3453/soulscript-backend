@@ -3,6 +3,21 @@ const path = require('path');
 const moodMapping = require('../utils/moodMapping');
 const bookMapping = require('../utils/bookMapping');
 
+const moodKeywords = {
+    happy: ['joy', 'rejoice', 'glad', 'cheer', 'blessing', 'praise', 'singing', 'shout', 'happy'],
+    sad: ['weep', 'sorrow', 'mourn', 'grief', 'cry', 'tears', 'broken', 'afflicted', 'sad'],
+    anxiety: ['worry', 'anxious', 'care', 'trouble', 'distress', 'heavy', 'burden', 'anxiety'],
+    peace: ['peace', 'rest', 'quiet', 'still', 'calm', 'comfort', 'gentle'],
+    motivation: ['strengthen', 'courage', 'bold', 'diligent', 'work', 'pursue', 'forward', 'motivation'],
+    fear: ['fear', 'afraid', 'terrify', 'dread', 'faint', 'tremble'],
+    hope: ['hope', 'wait', 'expect', 'trust', 'confidence', 'future'],
+    gratitude: ['thanks', 'grateful', 'praise', 'glorify', 'magnify', 'worship', 'gratitude'],
+    loneliness: ['alone', 'forsake', 'deserted', 'solitary', 'friendless', 'loneliness'],
+    strength: ['strength', 'strong', 'power', 'might', 'uphold', 'fortress', 'rock'],
+    faith: ['faith', 'believe', 'trust', 'assurance', 'steadfast', 'conviction'],
+    healing: ['heal', 'cure', 'restore', 'health', 'sick', 'whole', 'physician', 'healing']
+};
+
 class BibleService {
     constructor() {
         this.bibleData = null;
@@ -59,12 +74,22 @@ class BibleService {
                         if (hiChap[v] && hiChap[v].Verse) {
                             text_hi = hiChap[v].Verse;
                         } else {
-                            // Fallback to English BBE if Hindi is missing
                             text_hi = text_bbe;
                         }
 
                         const moodKey = `${bIdx}_${c + 1}_${v + 1}`;
-                        const mood = reverseMoodMap[moodKey] || "none";
+                        let mood = reverseMoodMap[moodKey] || "none";
+
+                        // If not manually mapped, attempt keyword detection
+                        if (mood === "none" && text_bbe) {
+                            const lowerText = text_bbe.toLowerCase();
+                            for (const [m, keywords] of Object.entries(moodKeywords)) {
+                                if (keywords.some(kw => lowerText.includes(kw))) {
+                                    mood = m;
+                                    break;
+                                }
+                            }
+                        }
 
                         const verseObj = {
                             text_bbe,
@@ -94,7 +119,7 @@ class BibleService {
                 };
             });
 
-            console.log('Bible data loaded into memory (BBE, KJV, HI) with Mood Indexes.');
+            console.log(`Bible data loaded. Mood indexes populated with ${Object.values(this.moodIndex).reduce((a, b) => a + b.length, 0)} tagged verses.`);
         } catch (error) {
             console.error('Error loading Bible data:', error);
             process.exit(1);
@@ -213,11 +238,20 @@ class BibleService {
     getVerseByMood(mood, lang = 'en', version = 'bbe') {
         try {
             const moodKey = mood ? mood.toLowerCase() : '';
-            const verses = moodMapping[moodKey];
-            if (!verses || verses.length === 0) return this.getRandomVerse(lang, version);
+            const indexedVerses = this.moodIndex[moodKey];
+            
+            if (!indexedVerses || indexedVerses.length === 0) {
+                return this.getRandomVerse(lang, version);
+            }
 
-            const randomSelection = verses[Math.floor(Math.random() * verses.length)];
-            return this.getVerse(randomSelection.bookIdx, randomSelection.chapter, randomSelection.verse, lang, version);
+            const randomSelection = indexedVerses[Math.floor(Math.random() * indexedVerses.length)];
+            return {
+                book: this.getBookName(randomSelection.bookIdx),
+                chapter: randomSelection.chapter,
+                verse: randomSelection.verse,
+                text: lang === 'hi' ? randomSelection.text_hi : (version === 'kjv' ? randomSelection.text_kjv : randomSelection.text_bbe),
+                mood: randomSelection.mood || "none"
+            };
         } catch (error) {
             console.error('Error in getVerseByMood:', error);
             return this.getRandomVerse(lang, version);
