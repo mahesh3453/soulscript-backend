@@ -4,7 +4,8 @@ const bookMapping = require('../utils/bookMapping');
 exports.getRandomVerse = (req, res) => {
     try {
         const lang = req.query.lang || 'en';
-        const verse = bibleService.getRandomVerse(lang);
+        const version = req.query.version || 'bbe';
+        const verse = bibleService.getRandomVerse(lang, version);
         if (!verse) {
             return res.status(404).json({ error: 'No verses found' });
         }
@@ -19,7 +20,8 @@ exports.getVerseByMood = (req, res) => {
     try {
         const mood = req.params.mood;
         const lang = req.query.lang || 'en';
-        const verse = bibleService.getVerseByMood(mood, lang);
+        const version = req.query.version || 'bbe';
+        const verse = bibleService.getVerseByMood(mood, lang, version);
         if (!verse) {
             return res.status(404).json({ error: 'Mood not found' });
         }
@@ -90,7 +92,8 @@ exports.getChapter = (req, res) => {
         }
 
         const lang = req.query.lang || 'en';
-        const result = bibleService.getChapter(bookIdx, parseInt(chapter), lang);
+        const version = req.query.version || 'bbe';
+        const result = bibleService.getChapter(bookIdx, parseInt(chapter), lang, version);
         if (!result) {
             return res.status(404).json({ error: 'Chapter not found' });
         }
@@ -121,7 +124,8 @@ exports.getSpecificVerse = (req, res) => {
         }
         
         const lang = req.query.lang || 'en';
-        const result = bibleService.getVerse(bookIdx, parseInt(chapter), parseInt(verse), lang);
+        const version = req.query.version || 'bbe';
+        const result = bibleService.getVerse(bookIdx, parseInt(chapter), parseInt(verse), lang, version);
         if (!result) {
             return res.status(404).json({ error: 'Verse not found' });
         }
