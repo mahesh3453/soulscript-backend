@@ -4,18 +4,25 @@ const moodMapping = require('../utils/moodMapping');
 const bookMapping = require('../utils/bookMapping');
 
 const moodKeywords = {
-    happy: ['joy', 'rejoice', 'glad', 'cheer', 'blessing', 'praise', 'singing', 'shout', 'happy'],
-    sad: ['weep', 'sorrow', 'mourn', 'grief', 'cry', 'tears', 'broken', 'afflicted', 'sad'],
-    anxiety: ['worry', 'anxious', 'care', 'trouble', 'distress', 'heavy', 'burden', 'anxiety'],
-    peace: ['peace', 'rest', 'quiet', 'still', 'calm', 'comfort', 'gentle'],
-    motivation: ['strengthen', 'courage', 'bold', 'diligent', 'work', 'pursue', 'forward', 'motivation'],
-    fear: ['fear', 'afraid', 'terrify', 'dread', 'faint', 'tremble'],
-    hope: ['hope', 'wait', 'expect', 'trust', 'confidence', 'future'],
-    gratitude: ['thanks', 'grateful', 'praise', 'glorify', 'magnify', 'worship', 'gratitude'],
-    loneliness: ['alone', 'forsake', 'deserted', 'solitary', 'friendless', 'loneliness'],
-    strength: ['strength', 'strong', 'power', 'might', 'uphold', 'fortress', 'rock'],
-    faith: ['faith', 'believe', 'trust', 'assurance', 'steadfast', 'conviction'],
-    healing: ['heal', 'cure', 'restore', 'health', 'sick', 'whole', 'physician', 'healing']
+    // Negative/Specific moods first to avoid happy overlap
+    sad: ['weep', 'sorrow', 'mourn', 'grief', 'cry', 'tears', 'broken', 'afflicted', 'sad', 'misery', 'lament'],
+    anxiety: ['worry', 'anxious', 'care', 'trouble', 'distress', 'heavy', 'burden', 'anxiety', 'panic', 'dread'],
+    fear: ['fear', 'afraid', 'terrify', 'dread', 'faint', 'tremble', 'shaking', 'horror'],
+    loneliness: ['alone', 'forsake', 'deserted', 'solitary', 'friendless', 'loneliness', 'abandoned'],
+    
+    // Positive specific moods
+    peace: ['peace', 'rest', 'quiet', 'still', 'calm', 'comfort', 'gentle', 'serene', 'tranquil'],
+    hope: ['hope', 'wait', 'expect', 'trust', 'confidence', 'future', 'endure', 'anchor'],
+    faith: ['faith', 'believe', 'trust', 'assurance', 'steadfast', 'conviction', 'faithful'],
+    healing: ['heal', 'cure', 'restore', 'health', 'sick', 'whole', 'physician', 'healing', 'medicine'],
+    
+    // Active/Power moods
+    strength: ['strength', 'strong', 'power', 'might', 'uphold', 'fortress', 'rock', 'endurance', 'brave'],
+    motivation: ['strengthen', 'courage', 'bold', 'diligent', 'work', 'pursue', 'forward', 'motivation', 'run'],
+    gratitude: ['thanks', 'grateful', 'praise', 'glorify', 'magnify', 'worship', 'gratitude', 'hallelujah'],
+    
+    // Broad mood last
+    happy: ['joy', 'rejoice', 'glad', 'cheer', 'blessing', 'singing', 'shout', 'happy', 'delight', 'wonderful']
 };
 
 class BibleService {
