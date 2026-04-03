@@ -32,6 +32,25 @@ exports.getVerseByMood = (req, res) => {
     }
 };
 
+exports.getVersesListByMood = (req, res) => {
+    try {
+        const mood = req.params.mood;
+        const lang = req.query.lang || 'en';
+        const version = req.query.version || 'bbe';
+        const verses = bibleService.getAllVersesByMood(mood, lang, version);
+        
+        // Always returning a generic structure matching expected ChapterViewer data
+        res.json({
+            book: "Verses for Mood",
+            chapter: mood.charAt(0).toUpperCase() + mood.slice(1),
+            verses: verses
+        });
+    } catch (error) {
+        console.error('getVersesListByMood error:', error);
+        res.status(500).json({ error: 'Failed to fetch mood verses list' });
+    }
+};
+
 exports.getBooks = (req, res) => {
     try {
         const books = bibleService.getBooks();

@@ -24,6 +24,16 @@ class BibleService {
             const enKJV = readJSON('en_kjv.json');
             const hiData = readJSON('hi.json');
 
+            const reverseMoodMap = {};
+            for (const [mood, verses] of Object.entries(moodMapping)) {
+                verses.forEach(v => {
+                    const key = `${v.bookIdx}_${v.chapter}_${v.verse}`;
+                    reverseMoodMap[key] = mood.toLowerCase();
+                });
+            }
+
+            this.moodIndex = { none: [], happy: [], sad: [], anxiety: [], peace: [], motivation: [], fear: [], hope: [], gratitude: [], loneliness: [], strength: [], faith: [], healing: [] };
+
             // Structure into efficient lookup array
             this.bibleData = bookMapping.map((mapping, bIdx) => {
                 const bbeBook = enBBE[bIdx] ? enBBE[bIdx].chapters : [];
@@ -53,11 +63,27 @@ class BibleService {
                             text_hi = text_bbe;
                         }
 
-                        verses.push({
+                        const moodKey = `${bIdx}_${c + 1}_${v + 1}`;
+                        const mood = reverseMoodMap[moodKey] || "none";
+
+                        const verseObj = {
                             text_bbe,
                             text_kjv,
-                            text_hi
-                        });
+                            text_hi,
+                            mood
+                        };
+
+                        verses.push(verseObj);
+
+                        if (mood !== "none") {
+                            if (!this.moodIndex[mood]) this.moodIndex[mood] = [];
+                            this.moodIndex[mood].push({
+                                bookIdx: bIdx,
+                                chapter: c + 1,
+                                verse: v + 1,
+                                ...verseObj
+                            });
+                        }
                     }
                     chapters.push(verses);
                 }
@@ -68,7 +94,7 @@ class BibleService {
                 };
             });
 
-            console.log('Bible data loaded into memory (BBE, KJV, HI).');
+            console.log('Bible data loaded into memory (BBE, KJV, HI) with Mood Indexes.');
         } catch (error) {
             console.error('Error loading Bible data:', error);
             process.exit(1);
@@ -93,7 +119,8 @@ class BibleService {
                 chapter,
                 verses: chapterData.map((verseObj, idx) => ({
                     verse: idx + 1,
-                    text: lang === 'hi' ? verseObj.text_hi : (version === 'kjv' ? verseObj.text_kjv : verseObj.text_bbe)
+                    text: lang === 'hi' ? verseObj.text_hi : (version === 'kjv' ? verseObj.text_kjv : verseObj.text_bbe),
+                    mood: verseObj.mood || "none"
                 }))
             };
         } catch (error) {
@@ -126,7 +153,8 @@ class BibleService {
                 book: this.getBookName(bookIdx),
                 chapter,
                 verse,
-                text: lang === 'hi' ? verseObj.text_hi : (version === 'kjv' ? verseObj.text_kjv : verseObj.text_bbe)
+                text: lang === 'hi' ? verseObj.text_hi : (version === 'kjv' ? verseObj.text_kjv : verseObj.text_bbe),
+                mood: verseObj.mood || "none"
             };
         } catch (error) {
             return null;
@@ -153,11 +181,32 @@ class BibleService {
                 book: this.getBookName(randomBookIdx),
                 chapter: randomChapterIdx + 1,
                 verse: randomVerseIdx + 1,
-                text: lang === 'hi' ? verseObj.text_hi : (version === 'kjv' ? verseObj.text_kjv : verseObj.text_bbe)
+                text: lang === 'hi' ? verseObj.text_hi : (version === 'kjv' ? verseObj.text_kjv : verseObj.text_bbe),
+                mood: verseObj.mood || "none"
             };
         } catch (error) {
             console.error('Error in getRandomVerse:', error);
             return null;
+        }
+    }
+
+    getAllVersesByMood(mood, lang = 'en', version = 'bbe') {
+        try {
+            const moodKey = mood ? mood.toLowerCase() : '';
+            const versesSet = this.moodIndex[moodKey];
+            
+            if (!versesSet || versesSet.length === 0) return [];
+            
+            return versesSet.map(v => ({
+                book: this.getBookName(v.bookIdx),
+                chapter: v.chapter,
+                verse: v.verse,
+                text: lang === 'hi' ? v.text_hi : (version === 'kjv' ? v.text_kjv : v.text_bbe),
+                mood: v.mood || "none"
+            }));
+        } catch (error) {
+            console.error('Error in getAllVersesByMood:', error);
+            return [];
         }
     }
 

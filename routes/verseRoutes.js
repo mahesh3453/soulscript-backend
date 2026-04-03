@@ -11,5 +11,6 @@ router.get('/verse/:book/:chapter/:verse', verseController.getSpecificVerse);
 router.get('/books', verseController.getBooks);
 router.get('/chapters/:book', verseController.getChaptersCount);
 router.get('/chapter/:book/:chapter', verseController.getChapter);
+router.get('/mood-filter/:mood', verseController.getVersesListByMood);
 
 module.exports = router;
