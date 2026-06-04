@@ -5,6 +5,8 @@ const verseRoutes = require('./routes/verseRoutes');
 const authRoutes = require('./routes/authRoutes');
 const bookmarkRoutes = require('./routes/bookmarkRoutes');
 const likeRoutes = require('./routes/likeRoutes');
+const chatRoutes = require('./routes/chatRoutes');
+const path = require('path');
 
 dotenv.config();
 
@@ -17,17 +19,19 @@ const PORT = process.env.PORT || 5000;
 
 // Middleware
 app.use(cors({
-    origin: ["https://soulscript-frontend.vercel.app"],
+    origin: ["https://soulscript-frontend.vercel.app", "http://localhost:5173", "http://localhost:3000"],
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true
 }));
 app.use(express.json());
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Routes
 app.use('/api', verseRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/bookmarks', bookmarkRoutes);
 app.use('/api/likes', likeRoutes);
+app.use('/api/chat', chatRoutes);
 
 // Health Check
 app.get('/', (req, res) => {

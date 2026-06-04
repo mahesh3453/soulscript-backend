@@ -42,9 +42,24 @@ class BibleService {
                 return JSON.parse(rawData);
             };
 
-            const enBBE = readJSON('en_bbe.json');
-            const enKJV = readJSON('en_kjv.json');
-            const hiData = readJSON('hi.json');
+            const translations = {
+                'en_bbe.json': null,
+                'en_kjv.json': null,
+                'hi.json': null
+            };
+
+            for (const file of Object.keys(translations)) {
+                try {
+                    translations[file] = readJSON(file);
+                } catch (err) {
+                    console.error(`CRITICAL ERROR: Failed to load ${file}:`, err.message);
+                    throw new Error(`Bible data file ${file} is missing or corrupt.`);
+                }
+            }
+
+            const enBBE = translations['en_bbe.json'];
+            const enKJV = translations['en_kjv.json'];
+            const hiData = translations['hi.json'];
 
             const reverseMoodMap = {};
             for (const [mood, verses] of Object.entries(moodMapping)) {
