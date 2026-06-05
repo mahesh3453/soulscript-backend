@@ -45,7 +45,8 @@ class BibleService {
             const translations = {
                 'en_bbe.json': null,
                 'en_kjv.json': null,
-                'hi.json': null
+                'hi.json': null,
+                'bible.json': null   // Marathi (MR)
             };
 
             for (const file of Object.keys(translations)) {
@@ -60,6 +61,7 @@ class BibleService {
             const enBBE = translations['en_bbe.json'];
             const enKJV = translations['en_kjv.json'];
             const hiData = translations['hi.json'];
+            const mrData = translations['bible.json']; // Marathi
 
             const reverseMoodMap = {};
             for (const [mood, verses] of Object.entries(moodMapping)) {
@@ -75,28 +77,38 @@ class BibleService {
             this.bibleData = bookMapping.map((mapping, bIdx) => {
                 const bbeBook = enBBE[bIdx] ? enBBE[bIdx].chapters : [];
                 const kjvBook = enKJV[bIdx] ? enKJV[bIdx].chapters : [];
-                const hiBook = (hiData.Book && hiData.Book[bIdx]) ? hiData.Book[bIdx].Chapter : [];
+                const hiBook  = (hiData.Book && hiData.Book[bIdx])  ? hiData.Book[bIdx].Chapter  : [];
+                // Marathi data has same nested structure as hi.json (Book → Chapter → Verse)
+                const mrBook  = (mrData.Book && mrData.Book[bIdx])  ? mrData.Book[bIdx].Chapter  : [];
 
                 const chapters = [];
-                const maxChapters = Math.max(bbeBook.length, kjvBook.length, hiBook.length);
+                const maxChapters = Math.max(bbeBook.length, kjvBook.length, hiBook.length, mrBook.length);
 
                 for (let c = 0; c < maxChapters; c++) {
                     const bbeChap = bbeBook[c] || [];
                     const kjvChap = kjvBook[c] || [];
-                    const hiChap = hiBook[c] ? hiBook[c].Verse : [];
+                    const hiChap  = hiBook[c]  ? hiBook[c].Verse  : [];
+                    const mrChap  = mrBook[c]  ? mrBook[c].Verse  : [];
                     
                     const verses = [];
-                    const maxVerses = Math.max(bbeChap.length, kjvChap.length, hiChap.length);
+                    const maxVerses = Math.max(bbeChap.length, kjvChap.length, hiChap.length, mrChap.length);
                     
                     for (let v = 0; v < maxVerses; v++) {
                         const text_bbe = bbeChap[v] || "";
                         const text_kjv = kjvChap[v] || "";
                         let text_hi = "";
+                        let text_mr = "";
                         
                         if (hiChap[v] && hiChap[v].Verse) {
                             text_hi = hiChap[v].Verse;
                         } else {
                             text_hi = text_bbe;
+                        }
+
+                        if (mrChap[v] && mrChap[v].Verse) {
+                            text_mr = mrChap[v].Verse;
+                        } else {
+                            text_mr = text_bbe; // graceful fallback to English
                         }
 
                         const moodKey = `${bIdx}_${c + 1}_${v + 1}`;
@@ -117,6 +129,7 @@ class BibleService {
                             text_bbe,
                             text_kjv,
                             text_hi,
+                            text_mr,
                             mood
                         };
 
@@ -166,7 +179,9 @@ class BibleService {
                 chapter,
                 verses: chapterData.map((verseObj, idx) => ({
                     verse: idx + 1,
-                    text: lang === 'hi' ? verseObj.text_hi : (version === 'kjv' ? verseObj.text_kjv : verseObj.text_bbe),
+                    text: lang === 'hi' ? verseObj.text_hi
+                        : lang === 'mr' ? verseObj.text_mr
+                        : (version === 'kjv' ? verseObj.text_kjv : verseObj.text_bbe),
                     mood: verseObj.mood || "none"
                 }))
             };
@@ -200,7 +215,9 @@ class BibleService {
                 book: this.getBookName(bookIdx),
                 chapter,
                 verse,
-                text: lang === 'hi' ? verseObj.text_hi : (version === 'kjv' ? verseObj.text_kjv : verseObj.text_bbe),
+                text: lang === 'hi' ? verseObj.text_hi
+                    : lang === 'mr' ? verseObj.text_mr
+                    : (version === 'kjv' ? verseObj.text_kjv : verseObj.text_bbe),
                 mood: verseObj.mood || "none"
             };
         } catch (error) {
@@ -228,7 +245,9 @@ class BibleService {
                 book: this.getBookName(randomBookIdx),
                 chapter: randomChapterIdx + 1,
                 verse: randomVerseIdx + 1,
-                text: lang === 'hi' ? verseObj.text_hi : (version === 'kjv' ? verseObj.text_kjv : verseObj.text_bbe),
+                text: lang === 'hi' ? verseObj.text_hi
+                    : lang === 'mr' ? verseObj.text_mr
+                    : (version === 'kjv' ? verseObj.text_kjv : verseObj.text_bbe),
                 mood: verseObj.mood || "none"
             };
         } catch (error) {
@@ -248,7 +267,9 @@ class BibleService {
                 book: this.getBookName(v.bookIdx),
                 chapter: v.chapter,
                 verse: v.verse,
-                text: lang === 'hi' ? v.text_hi : (version === 'kjv' ? v.text_kjv : v.text_bbe),
+                text: lang === 'hi' ? v.text_hi
+                    : lang === 'mr' ? v.text_mr
+                    : (version === 'kjv' ? v.text_kjv : v.text_bbe),
                 mood: v.mood || "none"
             }));
         } catch (error) {
@@ -271,7 +292,9 @@ class BibleService {
                 book: this.getBookName(randomSelection.bookIdx),
                 chapter: randomSelection.chapter,
                 verse: randomSelection.verse,
-                text: lang === 'hi' ? randomSelection.text_hi : (version === 'kjv' ? randomSelection.text_kjv : randomSelection.text_bbe),
+                text: lang === 'hi' ? randomSelection.text_hi
+                    : lang === 'mr' ? randomSelection.text_mr
+                    : (version === 'kjv' ? randomSelection.text_kjv : randomSelection.text_bbe),
                 mood: randomSelection.mood || "none"
             };
         } catch (error) {
