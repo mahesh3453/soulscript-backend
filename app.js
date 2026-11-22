@@ -6,6 +6,7 @@ const authRoutes = require('./routes/authRoutes');
 const bookmarkRoutes = require('./routes/bookmarkRoutes');
 const likeRoutes = require('./routes/likeRoutes');
 const chatRoutes = require('./routes/chatRoutes');
+const audioBibleRoutes = require('./routes/audioBibleRoutes');
 const path = require('path');
 
 dotenv.config();
@@ -32,6 +33,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/bookmarks', bookmarkRoutes);
 app.use('/api/likes', likeRoutes);
 app.use('/api/chat', chatRoutes);
+app.use('/api/audio-bible', audioBibleRoutes);
 
 // Health Check
 app.get('/', (req, res) => {
