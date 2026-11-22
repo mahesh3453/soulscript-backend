@@ -42,4 +42,7 @@ router.post('/upload', authMiddleware, upload.single('attachment'), chatControll
 // Add contact
 router.post('/contacts', authMiddleware, chatController.addContact);
 
+// Delete a message (for everyone or for me)
+router.delete('/message/:messageId', authMiddleware, chatController.deleteMessage);
+
 module.exports = router;

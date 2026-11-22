@@ -31,6 +31,16 @@ const MessageSchema = new mongoose.Schema({
     attachmentType: {
         type: String,
         default: null
+    },
+    // Delete for Everyone: message content wiped, placeholder shown to both parties
+    deletedForEveryone: {
+        type: Boolean,
+        default: false
+    },
+    // Delete for Me: per-user IDs who have hidden this message from their view
+    deletedFor: {
+        type: [mongoose.Schema.Types.ObjectId],
+        default: []
     }
 }, { timestamps: true });
 

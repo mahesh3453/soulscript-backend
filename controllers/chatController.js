@@ -99,7 +99,9 @@ exports.getChatHistory = async (req, res) => {
             $or: [
                 { senderId: userId, receiverId: otherUserId },
                 { senderId: otherUserId, receiverId: userId }
-            ]
+            ],
+            // Exclude messages that this user has deleted for themselves
+            deletedFor: { $ne: userId }
         };
 
         // cursor-based pagination using before (ISO string or timestamp)
@@ -112,8 +114,29 @@ exports.getChatHistory = async (req, res) => {
             .limit(parseInt(limit, 10))
             .lean();
 
+        // Mask content of globally-deleted messages — do not expose original text/attachments
+        const maskedMessages = messages.map(msg => {
+            if (msg.deletedForEveryone) {
+                return {
+                    _id: msg._id,
+                    senderId: msg.senderId,
+                    receiverId: msg.receiverId,
+                    message: '',
+                    attachmentUrl: null,
+                    attachmentType: null,
+                    isRead: msg.isRead,
+                    status: msg.status,
+                    deletedForEveryone: true,
+                    deletedFor: [],
+                    createdAt: msg.createdAt,
+                    updatedAt: msg.updatedAt
+                };
+            }
+            return msg;
+        });
+
         // Reverse to return them in chronological order
-        res.json(messages.reverse());
+        res.json(maskedMessages.reverse());
     } catch (error) {
         console.error('Get chat history error:', error);
         res.status(500).json({ error: 'Server error while fetching chat history' });
@@ -279,5 +302,81 @@ exports.heartbeat = async (req, res) => {
     } catch (error) {
         console.error('Heartbeat error:', error);
         res.status(500).json({ error: 'Server error during heartbeat update' });
+    }
+};
+
+// Delete a message — either for everyone (sender only) or just for me
+exports.deleteMessage = async (req, res) => {
+    try {
+        const userId = req.user._id;
+        const { messageId } = req.params;
+        const { deleteType } = req.body; // 'everyone' | 'me'
+
+        if (!messageId) {
+            return res.status(400).json({ error: 'Message ID is required' });
+        }
+        if (!deleteType || !['everyone', 'me'].includes(deleteType)) {
+            return res.status(400).json({ error: "deleteType must be 'everyone' or 'me'" });
+        }
+
+        const message = await Message.findById(messageId);
+        if (!message) {
+            return res.status(404).json({ error: 'Message not found' });
+        }
+
+        // Ensure the message belongs to this conversation (security check)
+        const isParticipant = 
+            message.senderId.toString() === userId.toString() ||
+            message.receiverId.toString() === userId.toString();
+        if (!isParticipant) {
+            return res.status(403).json({ error: 'You are not a participant of this conversation' });
+        }
+
+        // ── Delete for Everyone ───────────────────────────────────────────
+        if (deleteType === 'everyone') {
+            // Only the original sender can delete for everyone
+            if (message.senderId.toString() !== userId.toString()) {
+                return res.status(403).json({ error: 'Only the sender can delete a message for everyone' });
+            }
+            // Already deleted for everyone — idempotent
+            if (message.deletedForEveryone) {
+                return res.json({ success: true, message: 'Message already deleted for everyone', deletedForEveryone: true });
+            }
+
+            // Wipe the content and mark globally deleted
+            message.message = '';
+            message.attachmentUrl = null;
+            message.attachmentType = null;
+            message.deletedForEveryone = true;
+            await message.save();
+
+            return res.json({
+                success: true,
+                message: 'Message deleted for everyone',
+                deletedForEveryone: true,
+                _id: message._id
+            });
+        }
+
+        // ── Delete for Me ─────────────────────────────────────────────────
+        if (deleteType === 'me') {
+            // Already hidden for this user — idempotent
+            const alreadyDeleted = message.deletedFor.some(id => id.toString() === userId.toString());
+            if (alreadyDeleted) {
+                return res.json({ success: true, message: 'Message already deleted for you' });
+            }
+
+            message.deletedFor.push(userId);
+            await message.save();
+
+            return res.json({
+                success: true,
+                message: 'Message deleted for you',
+                _id: message._id
+            });
+        }
+    } catch (error) {
+        console.error('Delete message error:', error);
+        res.status(500).json({ error: 'Server error while deleting message' });
     }
 };
